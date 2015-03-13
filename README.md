@@ -1,3 +1,3 @@
-# salat-examples
+# Salat Examples
 
-Salat in bit sized examples.
+[Salat](https://github.com/novus/salat) in bite-sized examples.
