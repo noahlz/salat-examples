@@ -15,10 +15,10 @@ import scala.collection.JavaConversions
 import com.novus.salat.examples.globals._
 
 
-/** 
- * Case class with a JValue field. 
- * https://groups.google.com/forum/#!topic/scala-salat/BM3GpdjlFRE 
- */ 
+/**
+ * Case class with a JValue field.
+ * https://groups.google.com/forum/#!topic/scala-salat/BM3GpdjlFRE
+ */
 case class Something(_id: ObjectId = new ObjectId, name: String, jval: JString)
 
 object Something {
@@ -30,6 +30,14 @@ object Something {
 
 @Salat
 object SomethingDAO extends SalatDAO[Something, ObjectId](collection = MongoConnection()("test")("somethings"))
+
+case class Location(x: Double, y: Double)
+case class Venue(@Key("_id") id: Int,
+                 // location: Tuple2[Double, Double], // Salat doesn't support Tuples
+                 location: Location,
+                 name: String)
+
+object VenueDAO extends SalatDAO[Venue, Int](collection = MongoConnection()("ec")("venue"))
 
 object SalatExamples {
 
@@ -65,14 +73,23 @@ object SalatExamples {
     println(s"Saving Something instance to $SomethingDAO...")
     val id = SomethingDAO.insert(sin)
     println(s"...saved with _id = $id")
-    
+
     println("Finding Something instance by ID...")
     val sout = id.flatMap(SomethingDAO.findOneById)
     println(s"Got Something from database: $sout")
-   
-    // Same error as above 
+
+    // Same error as above
     val json = sout.map(grater[Something].toPrettyJSON)
     println(json.getOrElse("<Not Found>"))
   }
+
+  def floatNumberQueryExample() {
+    val venue = Venue(1, Location(1.0, 1.0), "NYC")
+    VenueDAO.save(venue)
+    println(s"Saved: $venue")
+    val found = VenueDAO.findOne(MongoDBObject("location.x" -> 1.0, "location.y" -> 1.0))
+    println(s"Found: $found")
+  }
+
 }
 
