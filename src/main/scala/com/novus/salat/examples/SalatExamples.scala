@@ -39,6 +39,9 @@ case class Venue(@Key("_id") id: Int,
 
 object VenueDAO extends SalatDAO[Venue, Int](collection = MongoConnection()("ec")("venue"))
 
+/** Exploring limitations */
+case class EitherHolder(either: Either[String, Int])
+
 object SalatExamples {
 
   def main(args: Array[String]) {
