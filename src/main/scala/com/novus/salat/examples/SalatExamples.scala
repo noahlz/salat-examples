@@ -42,11 +42,33 @@ object VenueDAO extends SalatDAO[Venue, Int](collection = MongoConnection()("ec"
 /** Exploring limitations */
 case class EitherHolder(either: Either[String, Int])
 
+/** Map of lists...not supported in 1.9.x */
+case class NestedCollHolder(lists: Map[String, List[String]] = Map.empty)
+
+/** Not supported. You should just make that maybeList a plain old List[String] with default value Nil. */
+case class OptionalColl(_id: ObjectId = new ObjectId, maybeList: Option[List[String]])
+
 object SalatExamples {
 
+  import org.slf4j._
+  val log = LoggerFactory.getLogger(this.getClass)
+
+  import scala.util.control.NonFatal
+
+  def tryAndLogErrors(fn: () => Unit) = try {
+    fn()
+  } catch {
+    case NonFatal(ex) => log.error("An error occurred:", ex)
+  }
+
   def main(args: Array[String]) {
-    casbahInsert()
-    // daoExample()
+    println("Running all examples...\n\n\n")
+    tryAndLogErrors(casbahInsert)
+    tryAndLogErrors(daoExample)
+    tryAndLogErrors(floatNumberQueryExample)
+    tryAndLogErrors(nestedCollections)
+    tryAndLogErrors(optionalCollection)
+    println("\n\n...Done")
   }
 
   def casbahInsert() {
@@ -94,5 +116,38 @@ object SalatExamples {
     println(s"Found: $found")
   }
 
+  def nestedCollections() {
+    val lists = NestedCollHolder(lists = Map(
+      "foo" -> List("a","b","c"),
+      "bar" -> List("d","e","f")))
+
+    val json = grater[NestedCollHolder].toPrettyJSON(lists)
+    println(json)
+
+    val fromJson = grater[NestedCollHolder].fromJSON(json)
+    println(fromJson)
+  }
+
+  def optionalCollection() {
+    // this actually works...
+    val obj = OptionalColl(maybeList = None)
+
+    val json = grater[OptionalColl].toPrettyJSON(obj)
+    println(json)
+
+    val fromJson = grater[OptionalColl].fromJSON(json)
+    println(fromJson)
+
+    // This...not so much
+    // https://github.com/salat/salat/wiki/SupportedTypes
+    val obj2 = OptionalColl(maybeList = Some(List("a","b","c")))
+    println(obj2)
+
+    val json2 = grater[OptionalColl].toPrettyJSON(obj2)
+    println(json2)
+
+    val fromJson2 = grater[OptionalColl].fromJSON(json2)
+    println(fromJson2)
+  }
 }
 
