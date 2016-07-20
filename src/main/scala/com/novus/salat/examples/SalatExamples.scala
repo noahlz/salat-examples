@@ -37,13 +37,28 @@ case class Venue(@Key("_id") id: Int,
                  location: Location,
                  name: String)
 
+
 object VenueDAO extends SalatDAO[Venue, Int](collection = MongoConnection()("ec")("venue"))
+
+case class MaybeIntHolder(_id: ObjectId = new ObjectId, i: Option[Int])
+object MaybeIntHolderDAO extends SalatDAO[MaybeIntHolder, ObjectId](collection = MongoConnection()("test")("maybeInts"))
 
 object SalatExamples {
 
   def main(args: Array[String]) {
-    casbahInsert()
+    // casbahInsert()
     // daoExample()
+    maybeIntHolderCrud()
+  }
+
+  def maybeIntHolderCrud() {
+    // val maybeInt = MaybeIntHolder(i = Option(1))
+    // MaybeIntHolderDAO.save(maybeInt)
+    // println("Saved: " + maybeInt)
+    // val found = MaybeIntHolderDAO.findOneById(maybeInt._id)
+    val found = MaybeIntHolderDAO.findOneById(new ObjectId("5589bef9e4b0e3db1d673d33"))
+    println("Found: " + found)
+    found.foreach(f => f.i.foreach(i => println("Found i: " + i)))
   }
 
   def casbahInsert() {
