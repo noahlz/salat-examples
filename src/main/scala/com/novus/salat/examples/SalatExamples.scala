@@ -48,6 +48,8 @@ case class NestedCollHolder(lists: Map[String, List[String]] = Map.empty)
 /** Not supported. You should just make that maybeList a plain old List[String] with default value Nil. */
 case class OptionalColl(_id: ObjectId = new ObjectId, maybeList: Option[List[String]])
 
+case class DoublesHolder(values: List[Double])
+
 object SalatExamples {
 
   import org.slf4j._
@@ -68,6 +70,8 @@ object SalatExamples {
     tryAndLogErrors(floatNumberQueryExample)
     tryAndLogErrors(nestedCollections)
     tryAndLogErrors(optionalCollection)
+    tryAndLogErrors(listOfDoubles)
+    tryAndLogErrors(listOfNulls)
     println("\n\n...Done")
   }
 
@@ -148,6 +152,18 @@ object SalatExamples {
 
     val fromJson2 = grater[OptionalColl].fromJSON(json2)
     println(fromJson2)
+  }
+
+  def listOfDoubles() {
+    val jsonWithDoubles = """{"values":[1,2,3]}"""
+    val fromJson = grater[DoublesHolder].fromJSON(jsonWithDoubles)
+    println(fromJson)
+  }
+
+  def listOfNulls() {
+    val jsonWithNulls = """{"values":[null, null, null]}"""
+    val fromJson = grater[DoublesHolder].fromJSON(jsonWithNulls)
+    println(fromJson)
   }
 }
 
