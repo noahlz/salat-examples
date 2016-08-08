@@ -50,6 +50,9 @@ case class OptionalColl(_id: ObjectId = new ObjectId, maybeList: Option[List[Str
 
 case class DoublesHolder(values: List[Double])
 
+class IntHolder(val i: Int) extends AnyVal
+case class IntHolderHolder(i: IntHolder)
+
 object SalatExamples {
 
   import org.slf4j._
@@ -72,6 +75,7 @@ object SalatExamples {
     tryAndLogErrors(optionalCollection)
     tryAndLogErrors(listOfDoubles)
     tryAndLogErrors(listOfNulls)
+    tryAndLogErrors(anyValHolder)
     println("\n\n...Done")
   }
 
@@ -164,6 +168,13 @@ object SalatExamples {
     val jsonWithNulls = """{"values":[null, null, null]}"""
     val fromJson = grater[DoublesHolder].fromJSON(jsonWithNulls)
     println(fromJson)
+  }
+
+  def anyValHolder() {
+    val intHolder = new IntHolder(1)
+    val model = IntHolderHolder(intHolder)
+    val json = grater[IntHolderHolder].toCompactJSON(model)
+    println(json)
   }
 }
 
