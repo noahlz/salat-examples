@@ -53,6 +53,8 @@ case class DoublesHolder(values: List[Double])
 class IntHolder(val i: Int) extends AnyVal
 case class IntHolderHolder(i: IntHolder)
 
+case class Weird(profile: String, indexingMappings: List[String])
+
 object SalatExamples {
 
   import org.slf4j._
@@ -76,6 +78,7 @@ object SalatExamples {
     tryAndLogErrors(listOfDoubles)
     tryAndLogErrors(listOfNulls)
     tryAndLogErrors(anyValHolder)
+    tryAndLogErrors(weird)
     println("\n\n...Done")
   }
 
@@ -175,6 +178,14 @@ object SalatExamples {
     val model = IntHolderHolder(intHolder)
     val json = grater[IntHolderHolder].toCompactJSON(model)
     println(json)
+  }
+
+  /** Attempt to reproduce issue #19 */
+  def weird() {
+    println("**** Issue #19 reproductio attempt")
+    val w = Weird("profile1", List("a","b","c"))
+    val json = grater[Weird].toCompactJSON(w)
+    println(w)
   }
 }
 
