@@ -182,7 +182,7 @@ object SalatExamples {
 
   /** Attempt to reproduce issue #19 */
   def weird() {
-    println("**** Issue #19 reproductio attempt")
+    println("**** Issue #19 reproduction attempt")
     val w = Weird("profile1", List("a","b","c"))
     val json = grater[Weird].toCompactJSON(w)
     println(w)
