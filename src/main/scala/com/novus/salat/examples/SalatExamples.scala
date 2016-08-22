@@ -207,8 +207,7 @@ object SalatExamples {
     try {
       // Insert some bad data...MaybeIntHolder shouldn't have doubles in the db...
       println("Saving a MaybeIntHolder having value of 2.01...")
-      val value = JDouble(2.01)
-      val doc = MongoDBObject("i" -> value)
+      val doc = MongoDBObject("i" -> 2.01)
       val wr = coll.insert(doc)
       println(s"$wr")
 
