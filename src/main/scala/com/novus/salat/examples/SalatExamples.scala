@@ -29,7 +29,7 @@ object Something {
 }
 
 @Salat
-object SomethingDAO extends SalatDAO[Something, ObjectId](collection = MongoConnection()("test")("somethings"))
+object SomethingDAO extends SalatDAO[Something, ObjectId](collection = MongoClient()("test")("somethings"))
 
 case class Location(x: Double, y: Double)
 case class Venue(@Key("_id") id: Int,
@@ -37,7 +37,7 @@ case class Venue(@Key("_id") id: Int,
                  location: Location,
                  name: String)
 
-object VenueDAO extends SalatDAO[Venue, Int](collection = MongoConnection()("ec")("venue"))
+object VenueDAO extends SalatDAO[Venue, Int](collection = MongoClient()("ec")("venue"))
 
 /** Exploring limitations */
 case class EitherHolder(either: Either[String, Int])
@@ -54,6 +54,10 @@ class IntHolder(val i: Int) extends AnyVal
 case class IntHolderHolder(i: IntHolder)
 
 case class Weird(profile: String, indexingMappings: List[String])
+
+@Salat
+object MaybeIntDAO extends SalatDAO[MaybeIntHolder, ObjectId](collection = MongoClient()("test")("numbers"))
+case class MaybeIntHolder(_id: ObjectId, i: Option[Int])
 
 object SalatExamples {
 
@@ -79,16 +83,18 @@ object SalatExamples {
     tryAndLogErrors(listOfNulls)
     tryAndLogErrors(anyValHolder)
     tryAndLogErrors(weird)
+    tryAndLogErrors(badData)
     println("\n\n...Done")
   }
 
   def casbahInsert() {
     import com.mongodb.casbah.Imports._
-    val mongoClient = MongoClient("localhost", 27017)
-    val coll = mongoClient("test")("somethings")
+    val coll = MongoClient()("test")("somethings")
+
     val value = JString("foo")
     val doc = MongoDBObject("jstring" -> value)
     coll.insert(doc)
+
     // This works because Casbah converts the case class as follows (see ScalaProductSerializer)
     import scala.collection.JavaConversions._
     val list: java.util.List[Any] = value.productIterator.toList
@@ -187,5 +193,54 @@ object SalatExamples {
     val json = grater[Weird].toCompactJSON(w)
     println(w)
   }
-}
 
+  /**
+   * Reproduction of Salat Issue #148.
+   * Bad data in the db survives past de-serialization
+   * and doesn't throw until you attempt to operate on it
+   * (it's "booby-trapped").
+   */
+  def badData() = {
+    import com.mongodb.casbah.Imports._
+    val coll = MongoClient()("test")("numbers")
+
+    try {
+      // Insert some bad data...MaybeIntHolder shouldn't have doubles in the db...
+      println("Saving a MaybeIntHolder having value of 2.01...")
+      val value = JDouble(2.01)
+      val doc = MongoDBObject("i" -> value)
+      val wr = coll.insert(doc)
+      println(s"$wr")
+
+      val cursor = MaybeIntDAO.find(MongoDBObject())
+
+      if (cursor.hasNext) {
+        val holder = cursor.next
+        println(s"${holder}") 
+        println("Accessing field 'i' of object (which is an Option[Int]):")
+        println(s"i: Option[Int] = ${holder.i}")
+        println("...Now for some math...")
+
+        // The following line throws a ClassCastException
+        // because i holds a List[Double](???) instead of an Int
+        // (due to shenanigans with the Mongo collection, above)
+        val output = holder.i.map(_ + 1)
+        println(s"Final result: $output")
+
+        // Note that this error could also occur with mongo
+        // lists that contain mixed data types, when the 
+        // case class declares a list of a specific type.
+        // For example List[Int] but the mongo document
+        // contains ["a",2,"c",3, ObjectId]
+
+      } else {
+        println("nothing found???")
+      }
+
+    } finally {
+      println("Clearing test collection 'numbers'")
+      val result = coll.remove(MongoDBObject())
+      println(s"$result")
+    }
+  }
+}
