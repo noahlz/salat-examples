@@ -57,7 +57,8 @@ case class Weird(profile: String, indexingMappings: List[String])
 
 @Salat
 object MaybeIntDAO extends SalatDAO[MaybeIntHolder, ObjectId](collection = MongoClient()("test")("numbers"))
-case class MaybeIntHolder(_id: ObjectId, i: Option[Int])
+case class MaybeIntHolder(_id: ObjectId, i: Option[Int], data: Map[String, Int])
+
 
 object SalatExamples {
 
@@ -207,7 +208,7 @@ object SalatExamples {
     try {
       // Insert some bad data...MaybeIntHolder shouldn't have doubles in the db...
       println("Saving a MaybeIntHolder having value of 2.01...")
-      val doc = MongoDBObject("i" -> 2.01)
+      val doc = MongoDBObject("i" -> 2.01, "data" -> MongoDBObject("x" -> 1.01))
       val wr = coll.insert(doc)
       println(s"$wr")
 
@@ -215,19 +216,29 @@ object SalatExamples {
 
       if (cursor.hasNext) {
         val holder = cursor.next
-        println(s"${holder}") 
+        println(s"${holder}")
         println("Accessing field 'i' of object (which is an Option[Int]):")
         println(s"i: Option[Int] = ${holder.i}")
+
+        println("Accessing field 'data' of object (which is Map[String, Int])")
+        println(s"data: Map[String, Int] = ${holder.data}")
+
         println("...Now for some math...")
+
+        // Suprise! Salat will narrow the double value that we stuffed
+        // into the Map[String, Int]. Prints out "Result = 2"
+        println("""Attempting holder.data("x") + 1""")
+        println(s"Result = ${holder.data("x") + 1}")
 
         // The following line throws a ClassCastException
         // because i holds a List[Double](???) instead of an Int
         // (due to shenanigans with the Mongo collection, above)
+        println("Attempting holder.i + 1")
         val output = holder.i.map(_ + 1)
-        println(s"Final result: $output")
+        println(s"Result: $output")
 
         // Note that this error could also occur with mongo
-        // lists that contain mixed data types, when the 
+        // lists that contain mixed data types, when the
         // case class declares a list of a specific type.
         // For example List[Int] but the mongo document
         // contains ["a",2,"c",3, ObjectId]
@@ -235,7 +246,10 @@ object SalatExamples {
       } else {
         println("nothing found???")
       }
-
+    } catch {
+      case e: Throwable =>
+        println(s"oops...an error occurred. Details to follow: $e")
+        throw e
     } finally {
       println("Clearing test collection 'numbers'")
       val result = coll.remove(MongoDBObject())
