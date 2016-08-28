@@ -57,7 +57,7 @@ case class Weird(profile: String, indexingMappings: List[String])
 
 @Salat
 object MaybeIntDAO extends SalatDAO[MaybeIntHolder, ObjectId](collection = MongoClient()("test")("numbers"))
-case class MaybeIntHolder(_id: ObjectId, i: Option[Int], data: Map[String, Int])
+case class MaybeIntHolder(_id: ObjectId, i: Option[Int], n: Int, data: Map[String, Int])
 
 
 object SalatExamples {
@@ -208,7 +208,7 @@ object SalatExamples {
     try {
       // Insert some bad data...MaybeIntHolder shouldn't have doubles in the db...
       println("Saving a MaybeIntHolder having value of 2.01...")
-      val doc = MongoDBObject("i" -> 2.01, "data" -> MongoDBObject("x" -> 1.01))
+      val doc = MongoDBObject("i" -> 2.01, "n" -> 5.01, "data" -> MongoDBObject("x" -> 1.01))
       val wr = coll.insert(doc)
       println(s"$wr")
 
@@ -217,18 +217,30 @@ object SalatExamples {
       if (cursor.hasNext) {
         val holder = cursor.next
         println(s"${holder}")
+
         println("Accessing field 'i' of object (which is an Option[Int]):")
         println(s"i: Option[Int] = ${holder.i}")
+
+        println("Accessing field 'n' of object (which is an Int):")
+        println(s"n: Int = ${holder.n}")
 
         println("Accessing field 'data' of object (which is Map[String, Int])")
         println(s"data: Map[String, Int] = ${holder.data}")
 
-        println("...Now for some math...")
+        println("Accessing field 'n' of object (which is an Int):")
+        println(s"i: Option[Int] = ${holder.n}")
 
-        // Suprise! Salat will narrow the double value that we stuffed
-        // into the Map[String, Int]. Prints out "Result = 2"
+        println("...Now for some math...")
+        
+        // Suprise! Salat will narrow the double value that we stuffed into Int type locations 
+
+        // Prints out Result = 6
+        println("""Attempting holder.n + 1""")
+        println(s"holder.n + 1 = ${holder.n + 1}")
+
+        // Prints out "Result = 2"
         println("""Attempting holder.data("x") + 1""")
-        println(s"Result = ${holder.data("x") + 1}")
+        println(s"""holder.data("x") + 1 = ${holder.data("x") + 1}""")
 
         // The following line throws a ClassCastException
         // because i holds a List[Double](???) instead of an Int
