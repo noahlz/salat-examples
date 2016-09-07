@@ -85,6 +85,7 @@ object SalatExamples {
     tryAndLogErrors(anyValHolder)
     tryAndLogErrors(weird)
     tryAndLogErrors(badData)
+    tryAndLogErrors(eitherHolder)
     println("\n\n...Done")
   }
 
@@ -231,7 +232,7 @@ object SalatExamples {
         println(s"i: Option[Int] = ${holder.n}")
 
         println("...Now for some math...")
-        
+
         // Suprise! Salat will narrow the double value that we stuffed into Int type locations 
 
         // Prints out Result = 6
@@ -267,5 +268,19 @@ object SalatExamples {
       val result = coll.remove(MongoDBObject())
       println(s"$result")
     }
+  }
+
+  def eitherHolder() = {
+    val obj = EitherHolder(Left("data"))
+    val dbo = grater[EitherHolder].asDBObject(obj)
+    println(s"serialized $obj to $dbo for storage in mongo")
+
+    val json = grater[EitherHolder].toCompactJSON(obj)
+
+    // We don't get this far. Exception attempting to convert Either to JSON
+    println(s"serialized $obj to $json")
+
+    val fromJSON = grater[EitherHolder].fromJSON(json)
+    println(s"deserialized from json: $fromJSON")
   }
 }
