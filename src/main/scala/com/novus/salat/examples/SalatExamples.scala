@@ -1,8 +1,8 @@
 package com.novus.salat.examples
 
-import com.novus.salat._
-import com.novus.salat.annotations._
-import com.novus.salat.dao._
+import salat._
+import salat.annotations._
+import salat.dao._
 import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.MongoConnection
 
@@ -11,7 +11,7 @@ import org.bson.types._
 
 import scala.collection.JavaConversions
 
-/* https://github.com/novus/salat/wiki/CustomContext */
+/* https://github.com/salat/salat/wiki/CustomContext */
 import com.novus.salat.examples.globals._
 
 
