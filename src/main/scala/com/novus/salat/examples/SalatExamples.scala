@@ -60,6 +60,17 @@ object MaybeIntDAO extends SalatDAO[MaybeIntHolder, ObjectId](collection = Mongo
 case class MaybeIntHolder(_id: ObjectId, i: Option[Int], n: Int, data: Map[String, Int])
 
 
+// Issue #154 Reproduction attempt
+@Salat abstract class AbsClass(name: String)
+case object ExampleClass extends AbsClass("Example")
+@Salat abstract class TestExample(val abs: AbsClass, val maybeNum: Option[Int])
+case class ConcreteTestExample(num: Int) extends TestExample(maybeNum = Option(num), abs = ExampleClass)
+case class ContainerClass(example: TestExample, debug: String)
+
+/**
+ * All the examples.
+ * TODO Split these out into distict classes.
+ */
 object SalatExamples {
 
   import org.slf4j._
@@ -233,7 +244,7 @@ object SalatExamples {
 
         println("...Now for some math...")
 
-        // Suprise! Salat will narrow the double value that we stuffed into Int type locations 
+        // Suprise! Salat will narrow the double value that we stuffed into Int type locations
 
         // Prints out Result = 6
         println("""Attempting holder.n + 1""")
@@ -282,5 +293,28 @@ object SalatExamples {
 
     val fromJSON = grater[EitherHolder].fromJSON(json)
     println(s"deserialized from json: $fromJSON")
+  }
+
+  def abstractClasses() {
+    val ex = ConcreteTestExample(2)
+    println(s"scala data: $ex")
+
+    val dbo = grater[TestExample].asDBObject(ex)
+    println(s"asDBObject (using TestExample spec): $dbo")
+
+    val obj = grater[ConcreteTestExample].asObject(dbo)
+    println(s"back to scala (using ConcreteTestExample spec): $dbo")
+
+    println("Now do the same, but with ConreteTestExample as the field of an object...")
+    val container = ContainerClass(debug = "test", example = ConcreteTestExample(2))
+    println(s"$container")
+
+    val conDbo = grater[ContainerClass].asDBObject(container)
+    println(s"asDBObject (using ContainerClass spec): $conDbo")
+
+    println("...attempt to deserialize this...")
+    val conObj = grater[ContainerClass].asObject(conDbo)
+
+    println(s"success: $conObj")
   }
 }
