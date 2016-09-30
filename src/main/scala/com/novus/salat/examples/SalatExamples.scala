@@ -49,6 +49,7 @@ case class NestedCollHolder(lists: Map[String, List[String]] = Map.empty)
 case class OptionalColl(_id: ObjectId = new ObjectId, maybeList: Option[List[String]])
 
 case class DoublesHolder(values: List[Double])
+case class OptionalDoublesHolder(values: List[Option[Double]])
 
 class IntHolder(val i: Int) extends AnyVal
 case class IntHolderHolder(i: IntHolder)
@@ -92,6 +93,7 @@ object SalatExamples {
     tryAndLogErrors(nestedCollections)
     tryAndLogErrors(optionalCollection)
     tryAndLogErrors(listOfDoubles)
+    tryAndLogErrors(listOfOptionalDoubles)
     tryAndLogErrors(listOfNulls)
     tryAndLogErrors(anyValHolder)
     tryAndLogErrors(weird)
@@ -184,6 +186,14 @@ object SalatExamples {
     val jsonWithDoubles = """{"values":[1,2,3]}"""
     val fromJson = grater[DoublesHolder].fromJSON(jsonWithDoubles)
     println(fromJson)
+  }
+
+  def listOfOptionalDoubles() {
+    val jsonWithDoubles = """{"values":[1,2,3]}"""
+    val fromJson = grater[OptionalDoublesHolder].fromJSON(jsonWithDoubles)
+    println(fromJson)
+    val head: Option[Double] = fromJson.values.head
+    println("First element = " + head)
   }
 
   def listOfNulls() {
