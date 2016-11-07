@@ -4,12 +4,9 @@ import salat._
 import salat.annotations._
 import salat.dao._
 import com.mongodb.casbah.Imports._
-import com.mongodb.casbah.MongoConnection
 
 import org.json4s._
 import org.bson.types._
-
-import scala.collection.JavaConversions
 
 /* https://github.com/salat/salat/wiki/CustomContext */
 import com.novus.salat.examples.globals._
@@ -67,6 +64,12 @@ case object ExampleClass extends AbsClass("Example")
 @Salat abstract class TestExample(val abs: AbsClass, val maybeNum: Option[Int])
 case class ConcreteTestExample(num: Int) extends TestExample(maybeNum = Option(num), abs = ExampleClass)
 case class ContainerClass(example: TestExample, debug: String)
+
+@Salat trait Color
+case object Red extends Color
+case object Yellow extends Color
+case object Blue extends Color
+case class Pallet(paint: List[Color])
 
 /**
  * All the examples.
@@ -326,5 +329,20 @@ object SalatExamples {
     val conObj = grater[ContainerClass].asObject(conDbo)
 
     println(s"success: $conObj")
+  }
+
+  def caseObjectOverride() = {
+    ctx.registerCaseObjectOverride[Color, Red.type]("red")
+    ctx.registerCaseObjectOverride[Color, Yellow.type]("yellow")
+    ctx.registerCaseObjectOverride[Color, Blue.type]("blue")
+
+    val pallet = Pallet(List(Red, Yellow, Blue))
+    val json = grater[Pallet].toPrettyJSON(pallet)
+
+    println(s"colors: $json")
+
+    // TIL: toJSONArray doesn't support case object overrides
+    println(s"\ntoPrettyJSONArray:")
+    println(grater[Color].toPrettyJSONArray(List(Red, Yellow, Blue)))
   }
 }
