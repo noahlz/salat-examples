@@ -9,7 +9,7 @@ scalaVersion := "2.11.8"
 crossScalaVersions := Seq("2.10.4", "2.11.8")
 
 // Uncomment to use snapshot versions.
-// resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
 libraryDependencies ++= Seq(
   "com.github.salat" %% "salat" % "1.11.0-SNAPSHOT",
